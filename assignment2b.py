@@ -42,7 +42,6 @@ class Graph():
     def draw_graph(self):
         """
         """
-
         # draw graph
         pos = nx.shell_layout(self.graph)
         nx.draw(self.graph, pos)
@@ -53,7 +52,6 @@ class Graph():
     def draw_graph_with_labels(self):
         """
         """
-
         # graph configuration
         pos = nx.shell_layout(self.graph)
         node_size = 1600
@@ -82,20 +80,49 @@ class Graph():
         # show graph
         plt.show()
 
+    def text_offer_help(self):
+        """
+        """
+        return 'Hello! How can I help you?'
+
+    def text_ask_if_found(self):
+        """
+        """
+        return 'You should ask to the campus reception in case someone has found your card and has returned it there.'
+
+    def text_ask_for_new_one(self):
+        """
+        """
+        return 'You should then ask for a new one, you can ask for a meeting in order to renew the student card following this link: http://fluvia.upf.edu/citescarnet/login.php. For more information you can always visit: www.upf.edu/carnetupf'
+
+    def text_you_are_welcome(self):
+        """
+        """
+        return "No problem. That is why I'm here :)"
+
+    def text_goodbye(self):
+        """
+        """
+        return 'Goodbye!'
+
+    def text_error(self):
+        """
+        """
+        return "Sorry, I don't understand. Do you have any problem with your student card?"
+
     def create_graph(self):
         """
         """
-
         # create networkx graph
         graph = nx.DiGraph()
 
         # add nodes
-        graph.add_node('offer_help', text='Hello! How can I help you?')
-        graph.add_node('ask_if_found', text='You should ask to the campus reception in case someone has found your card and has returned it there.')
-        graph.add_node('ask_for_new_one', text='You should then ask for a new one, you can ask for a meeting in order to renew the student card following this link: http://fluvia.upf.edu/citescarnet/login.php. For more information you can always visit: www.upf.edu/carnetupf')
-        graph.add_node('you_are_welcome', text='No problem. That is why I''m here :)')
-        graph.add_node('goodbye', text='Goodbye!')
-        graph.add_node('error', text="Sorry, I don't understand. Do you have any problem with your student card?")
+        graph.add_node('offer_help', text=self.text_offer_help)
+        graph.add_node('ask_if_found', text=self.text_ask_if_found)
+        graph.add_node('ask_for_new_one', text=self.text_ask_for_new_one)
+        graph.add_node('you_are_welcome', text=self.text_you_are_welcome)
+        graph.add_node('goodbye', text=self.text_goodbye)
+        graph.add_node('error', text=self.text_error)
 
         # add edges
         # todo: dos listas, una con posibilidades y otra con cosas que deben aparecer para ejecutar esa transicion?
@@ -124,7 +151,6 @@ class Graph():
         """ return number of the node to which we should transition, given that we
         are in 'node' and the user typed 'answer'
         """
-        
         # get edges connecting 'node' with other nodes
         edges = [a for a in self.graph.edges() if a[0] == node]
         
@@ -141,11 +167,10 @@ class Graph():
         """ starting on node 'offer_help', prints the machine answers according with
         the user questions, until no more transitions are possible
         """
-
         answer = raw_input("You enter Bea's virtual office. Welcome!\n>> ")  # 'hello' expected
         node = 'offer_help'
         while self.graph.successors(node):
-            answer = raw_input(self.graph.node[node]['text'] + '\n>> ')
+            answer = raw_input(self.graph.node[node]['text']() + '\n>> ')
             edge = self.parse_answer(node, answer)
             node = edge
         print self.graph.node['goodbye']['text']
