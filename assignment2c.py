@@ -25,6 +25,11 @@ References:
 
 Todos:
     - i si no té username U...?
+    - dates:
+        if not self.proposed_date:
+            self.proposed_date = datetime.datetime.now() + datetime.timedelta(days=2)
+        else:
+            self.proposed_date = self.proposed_date + datetime.timedelta(days=1)
 
 """
 
@@ -46,13 +51,17 @@ class Graph():
         self.graph = None
 
         # user information
-        self.user_name = None
-        self.user_id = None
+        self.user_name = ""
+        self.user_id = ""
         self.user_availability = None
+        self.proposed_date = datetime.datetime.now() + datetime.timedelta(days=2)
 
         # state transition information
         self.current_node = 'ask_name'
         self.last_node = ''
+
+        # compute the phrases for each state
+        self.compute_phrases()
 
     def draw_graph(self):
         """ draws the graph, without any label
@@ -95,166 +104,85 @@ class Graph():
         # show graph
         plt.show()
 
-    def text_ask_name(self):
+    def choose_phrase(self, node):
+        """ given a node name 'node', returns a valid random valid phrase from
+        the available phrases
         """
-        """
-        if self.current_node == self.last_node:
-            return "Sorry, I couldn't get your name. What's your name again?"
-
-        if self.last_node == 'offer_help':
-            return "Excuse me. I didn't get your name. Would you repeat it for me, please?"
-
-        options = ["Hi! What's your name?",
-                   "Hello, could you remind me your name please?",
-                   "Hi! I can't recall your name. It was...?"]
-
+        if self.last_node in self.states_phrases[node]['last_node']:
+            # last_node was a special case for the node where we are
+            options = self.states_phrases[node]['last_node'][self.last_node]
+        elif self.current_node == self.last_node and self.states_phrases[node]['recurrent']:
+            # we are coming back to the same node
+            options = self.states_phrases[node]['recurrent']
+        else:
+            # choose betwen regular options
+            options = self.states_phrases[node]['options']
+        
         return options[random.randint(0, len(options) - 1)]
 
-    def text_offer_help(self):
+    def compute_phrases(self):
         """
         """
-        if self.current_node == self.last_node:
-            return "Sorry " + self.user_name + ", I don't understand what you said. How can I help you with your student card?"
-
-        options = ["Of course! Sorry for my poor memory ;) How can I help you " + self.user_name + "?",
-                   "Sure " + self.user_name + ". How can I help you?",
-                   "Oh! How could I forgot if that's my cat's name? Tell me " + self.user_name + ", what can I do for you?"]
-
-        return options[random.randint(0, len(options) - 1)]
-
-    def text_ask_problem(self):
-        """
-        """
-        if self.current_node == self.last_node:
-            return "Sorry, I don't understand. What kind of problem do you have (lost it, doesn't work, permission issues...)?"
-
-        options = ["What kind of problem do you have?",
-                   "Oh, what happened?"]
-
-        return options[random.randint(0, len(options) - 1)]
-
-    def text_ask_check_in_reception(self):
-        """
-        """
-        if self.current_node == self.last_node:
-            return "Sorry, I dont understand what you said. Did you check if they have found it in the campus reception?"
-
-        options = ["Oh, I'm sorry to hear that. Have you asked in the campus reception?",
-                   "Really? Oh... Have you asked in the campus reception?",
-                   "Oh, I'm sorry, but you'll be expelled from the university... \n\n\n...\n\n\nJust kidding! Have you asked in the campus reception?"]
-
-        return options[random.randint(0, len(options) - 1)]
-
-    def text_check_in_reception(self):
-        """
-        """
-        if self.current_node == self.last_node:
-            return "Sorry, I didn't hear you. What did you say?"
-
-        options = ["Then that's the first thing you have to do.",
-                   "You should go there first, to check if they found it."]
-
-        return options[random.randint(0, len(options) - 1)]
-
-    def text_goodbye(self):
-        """
-        """
-        options = ["Bye " + self.user_name + "!",
-                   "Glad to help you, " + self.user_name + "!",
-                   "Goodbye " + self.user_name + ". Have a nice day!"]
-
-        return options[random.randint(0, len(options) - 1)]
-
-    def text_get_new_card(self):
-        """
-        """
-        if self.current_node == self.last_node:
-            return "Sorry, I couldn't get what you just said. How can I help you?"
-
-        options = ["Oh, if it isn't working you should ask for a new one.",
-                   "I see... Then you need a new one."]
-
-        return options[random.randint(0, len(options) - 1)]
-
-    def text_check_permissions(self):
-        """
-        """
-        if self.current_node == self.last_node:
-            return "Sorry, I couldn't get what you just said. How can I help you?"
-
-        options = ["Oh, if the permissions are wrong you should ask for an update.",
-                   "I see... Then you need new permissions."]
-
-        return options[random.randint(0, len(options) - 1)]
-
-    def text_meeting_pie(self):
-        """
-        """
-        if self.current_node == self.last_node:
-            return "Sorry, I couldn't get what you just said. How can I help you?"
-
-        options = ["You need to ask for a meeting at PIE. If you want I can do it for you.",
-                   "You need to go to the library and arrange a meeting at the PIE. However, as I'm a machine (ba dum tssssss) I can do it for you."]
-        return options[random.randint(0, len(options) - 1)]
-
-    def text_explain_pie(self):
-        """
-        """
-        if self.current_node == self.last_node:
-            return "Sorry, I couldn't get what you just said. How can I help you?"
-
-        options = ["PIE stands for Punt d'Informació de l'Estudiantat. Do you want me to arrange a meeting for you there?",
-                   "Oh, it's the Punt d'Informació de l'Estudiantat. I can arrange a meeting for you if you want."]
-        return options[random.randint(0, len(options) - 1)]
-
-    def text_ask_username(self):
-        """
-        """
-        if self.current_node == self.last_node:
-            return "Sorry, I couldn't get what you just said. How can I help you?"
-
-        if self.last_node == 'ask_availability':
-            return "Sorry, can you type again your username? Something went wrong..."
-
-        options = ["Ok. Can you give me your username? The one that starts with U...",
-                   "Perfect. I need you username, the one starting with U..."]
-        return options[random.randint(0, len(options) - 1)]
-
-    def text_ask_availability(self):
-        """
-        """
-        if self.current_node == self.last_node:
-            return "Sorry, I couldn't get what you just said. How can I help you?"
-
-        options = ["Ok " + self.user_id + ". Do you prefer the meeting to be in the morning or in the afternoon?",
-                   self.user_id + ", got it. Would you like the meeting to be in the morning or in the afternoon?"]
-        return options[random.randint(0, len(options) - 1)]
-
-    def text_check_date(self):
-        """
-        """
-        if self.current_node == self.last_node:
-            return "Sorry, I couldn't get what you just said. How can I help you?"
-
+        hours = ['15:00', '16:00', '17:00', '17:30', '18:00']
         if self.user_availability == 'morning':
             hours = ['09:00', '10:00', '11:00', '11:30', '12:00']
-        else:
-            hours = ['15:00', '16:00', '17:00', '17:30', '18:00']
 
-        if not self.proposed_date:
-            self.proposed_date = datetime.datetime.now() + datetime.timedelta(days=2)
-        else:
-            self.proposed_date = self.proposed_date + datetime.timedelta(days=1)
-
-        options = ["The next possible appointment could be " + self.proposed_date.strftime("%B %d") + " at " + hours[random.randint(0, len(hours) - 1)],
-                   "If it is alright, I'll arrange you a meeting on " + self.proposed_date.strftime("%B %d") + " at " + hours[random.randint(0, len(hours) - 1)]]
-        return options[random.randint(0, len(options) - 1)]
-
-    def prova(self):
-        """
-        """
-        import ipdb; ipdb.set_trace()
-        return
+        self.states_phrases = {'ask_name': {'options': ["Hi! What's your name?",
+                                                        "Hello, could you remind me your name please?",
+                                                        "Hi! I can't recall your name. It was...?"],
+                                            'recurrent': ["Sorry, I couldn't get your name. What's your name again?"],
+                                            'last_node': {'offer_help': ["Excuse me. I didn't get your name. Would you repeat it for me, please?"]}},
+                               'offer_help': {'options': ["Of course! Sorry for my poor memory ;) How can I help you " + self.user_name + "?",
+                                                          "Sure " + self.user_name + ". How can I help you?",
+                                                          "Oh! How could I forgot if that's my cat's name? Tell me " + self.user_name + ", what can I do for you?"],
+                                              'recurrent': ["Sorry " + self.user_name + ", I don't understand what you said. How can I help you with your student card?"],
+                                              'last_node': {}},
+                               'ask_problem': {'options': ["What kind of problem do you have?",
+                                                           "Oh, what happened?"],
+                                               'recurrent': ["Sorry, I don't understand. What kind of problem do you have (lost it, doesn't work, permission issues...)?"],
+                                               'last_node': {}},
+                               'ask_check_in_reception': {'options': ["Oh, I'm sorry to hear that. Have you asked in the campus reception?",
+                                                                      "Really? Oh... Have you asked in the campus reception?",
+                                                                      "Oh, I'm sorry, but you'll be expelled from the university... \n\n...\n\nJust kidding! Have you asked in the campus reception?"],
+                                                          'recurrent': ["Sorry, I dont understand what you said. Did you check if they have found it in the campus reception?"],
+                                                          'last_node': {}},
+                               'check_in_reception': {'options': ["Then that's the first thing you have to do.",
+                                                                  "You should go there first, to check if they found it."],
+                                                      'recurrent': ["Sorry, I didn't hear you. What did you say?"],
+                                                      'last_node': {}},
+                               'goodbye': {'options': ["Bye " + self.user_name + "!",
+                                                       "Glad to help you, " + self.user_name + "!",
+                                                       "Goodbye " + self.user_name + ". Have a nice day!"],
+                                           'recurrent': [],
+                                           'last_node': {}},
+                               'get_new_card': {'options': ["Oh, if it isn't working you should ask for a new one.",
+                                                            "I see... Then you need a new one."],
+                                                'recurrent': ["Sorry, I couldn't get what you just said. How can I help you?"],
+                                                'last_node': {}},
+                               'check_permissions': {'options': ["Oh, if the permissions are wrong you should ask for an update.",
+                                                                 "I see... Then you need new permissions."],
+                                                     'recurrent': ["Sorry, I couldn't get what you just said. How can I help you?"],
+                                                     'last_node': {}},
+                               'meeting_pie': {'options': ["You need to ask for a meeting at PIE. If you want I can do it for you.",
+                                                           "You need to go to the library and arrange a meeting at the PIE. However, as I'm a machine (ba dum tssssss) I can do it for you."],
+                                               'recurrent': ["Sorry, I couldn't get what you just said. How can I help you?"],
+                                               'last_node': {}},
+                               'explain_pie': {'options': ["PIE stands for Punt d'Informació de l'Estudiantat. Do you want me to arrange a meeting for you there?",
+                                                           "Oh, it's the Punt d'Informació de l'Estudiantat. I can arrange a meeting for you if you want."],
+                                               'recurrent': ["Sorry, I couldn't get what you just said. How can I help you?"],
+                                               'last_node': {}},
+                               'ask_username': {'options': ["Ok. Can you give me your username? The one that starts with U...",
+                                                            "Perfect. I need you username, the one starting with U..."],
+                                                'recurrent': ["Sorry, I couldn't get what you just said. How can I help you?"],
+                                                'last_node': {'ask_availability': ["Sorry, can you type again your username? Something went wrong..."]}},
+                               'ask_availability': {'options': ["Ok " + self.user_id + ". Do you prefer the meeting to be in the morning or in the afternoon?",
+                                                                self.user_id + ", got it. Would you like the meeting to be in the morning or in the afternoon?"],
+                                                    'recurrent': ["Sorry, I couldn't get what you just said. How can I help you?"],
+                                                    'last_node': {}},
+                               'check_date': {'options': ["The next possible appointment could be " + self.proposed_date.strftime("%B %d") + " at " + hours[random.randint(0, len(hours) - 1)],
+                                                          "If it is alright, I'll arrange you a meeting on " + self.proposed_date.strftime("%B %d") + " at " + hours[random.randint(0, len(hours) - 1)]],
+                                              'recurrent': ["Sorry, I couldn't get what you just said. How can I help you?"],
+                                              'last_node': {}}}
 
     def create_graph(self):
         """ creates the graph with all possible nodes and transitions; saves it
@@ -264,18 +192,11 @@ class Graph():
         graph = nx.DiGraph()
 
         # add nodes
-        graph.add_node('ask_name', text=self.text_ask_name, function=self.prova)
-        graph.add_node('offer_help', text=self.text_offer_help)
-        graph.add_node('ask_problem', text=self.text_ask_problem)
-        graph.add_node('ask_check_in_reception', text=self.text_ask_check_in_reception)
-        graph.add_node('check_in_reception', text=self.text_check_in_reception)
-        graph.add_node('goodbye', text=self.text_goodbye)
-        graph.add_node('get_new_card', text=self.text_get_new_card)
-        graph.add_node('check_permissions', text=self.text_check_permissions)
-        graph.add_node('meeting_pie', text=self.text_meeting_pie)
-        graph.add_node('ask_username', text=self.text_ask_username)
-        graph.add_node('ask_availability', text=self.text_ask_availability)
-        graph.add_node('check_date', text=self.text_check_date)
+        graph.add_nodes_from(['ask_name', 'offer_help', 'ask_problem',
+                              'ask_check_in_reception', 'check_in_reception',
+                              'goodbye', 'get_new_card', 'check_permissions',
+                              'meeting_pie', 'ask_username', 'ask_availability',
+                              'check_date'])
 
         # add edges
         graph.add_edge('ask_name', 'offer_help', required_words=[])
@@ -339,6 +260,7 @@ class Graph():
         array_answer = [a for a in answer.lower().split(' ') if a not in dummy_words]
         if len(array_answer) > 0 and len(array_answer) < 4:
             self.user_name = ' '.join([a.capitalize() for a in array_answer])
+            self.compute_phrases()  # recompute phrases because some of them contain self.user_name
         return
 
     def parse_answer(self, answer):
@@ -352,21 +274,22 @@ class Graph():
         """ returns the edge to which we should transition, given that we are in
         self.current_node and the user typed 'answer'
         """
-        import ipdb; ipdb.set_trace()
+        # special cases
         if self.current_node == 'ask_name':
             self.parse_user_name(answer)
             # return to ask_name
-            if self.user_name is None:
+            if self.user_name == "":
                 return (self.current_node, self.current_node)
             else:
                 return ('ask_name', 'offer_help')
 
+        # parse user answer
         answer = self.parse_answer(answer)
 
         # get edges connecting 'node' with other nodes
         edges = [a for a in self.graph.edges() if a[0] == self.current_node]
         
-        # get first edge that contains any of the words on 'answer'
+        # get edge that contains more keyword coincidences with 'answer'
         max_required_words = 0
         best_edge = None
         need_recheck = False
@@ -384,12 +307,11 @@ class Graph():
         
         if need_recheck:
             return (self.current_node, self.current_node)
+        elif best_edge:
+            return best_edge
         else:
-            if best_edge:
-                return best_edge
-            else:
-                # if no edge found, transition to 7
-                return (self.current_node, self.current_node)
+            # if no edge found, transition to current node again
+            return (self.current_node, self.current_node)
 
     def create_dialog(self):
         """ starting on self.current_node, keeps printing the current node text,
@@ -397,18 +319,18 @@ class Graph():
         according to user answer, until no more transitions are possible.
         """
         # initial situation explanation
-        answer = raw_input("You enter Bea's virtual office. Welcome!\n>> ")  # 'hello' expected
+        answer = raw_input("\n'KNOCK KNOCK!!' \n\n... \n\n'Please come in!!' \n\n... \n\nYou enter Bea's virtual office; please be nice and say hello :)\n\n>> ")  # 'hello' expected
 
         # main loop
         while self.graph.successors(self.current_node):
-            answer = raw_input(self.graph.node[self.current_node]['text']() + '\n>> ')
+            answer = raw_input(self.choose_phrase(self.current_node) + '\n>> ')
             edge = self.choose_next_node(answer)
             self.last_node = self.current_node
             self.current_node = edge[1]
 
         # show last node text
         if not self.graph.successors(self.current_node):
-            print self.graph.node[self.current_node]['text']() + "\n"
+            print self.choose_phrase(self.current_node) + "\n"
         return
 
 
@@ -416,7 +338,7 @@ def main():
     graph = Graph()
     graph.create_graph()
     graph.create_dialog()
-    graph.draw_graph_with_labels()
+    # graph.draw_graph_with_labels()
 
 if __name__ == '__main__':
     status = main()
