@@ -4,7 +4,8 @@
 Natural Language Interaction, MIIS, UPF
 January 2015
 Authors: Laura Pérez & Víctor Casamayor
-Description: todo
+Description: Dialog Manager modeled using a Finite State Machine. It models a
+virtual secretary to help students solve problems with their student card.
 
 Installation:
     $ pip install networkx
@@ -22,10 +23,6 @@ Troubleshooting:
 References:
     - http://en.wikipedia.org/wiki/Dialog_tree
     - https://networkx.github.io/documentation/latest/reference/index.html
-
-Todos:
-    - i si no té username U...?
-    - i si vol demanar hora més tard, etc? millorar funció ask_availability_function
 
 """
 
@@ -124,24 +121,24 @@ class Graph():
         are repeating the state in 'recurrent', and special phrases to show in
         case we came from concrete states in 'last_node'
         """
-        self.states_phrases = {'ask_name': {'options': ["Hi! What's your name?",
+        self.states_phrases = {'ask_name': {'options': ["Hi! What's your name, please?",
                                                         "Hello, could you remind me your name please?",
                                                         "Hi! I can't recall your name. It was...?"],
                                             'recurrent': ["Sorry, I couldn't get your name. What's your name again?"],
-                                            'last_node': {'offer_help': ["Excuse me. I didn't get your name. Would you repeat it for me, please?"]}},
+                                            'last_node': {'offer_help': ["Oh excuse me! I got your name wrong. Would you repeat it for me, please?"]}},
                                'offer_help': {'options': ["Of course! Sorry for my poor memory ;) How can I help you " + self.user_name + "?",
                                                           "Sure " + self.user_name + ". How can I help you?",
                                                           "Oh! How could I forgot if that's my cat's name? Tell me " + self.user_name + ", what can I do for you?"],
-                                              'recurrent': ["Sorry " + self.user_name + ", I don't understand what you said. How can I help you with your student card?"],
+                                              'recurrent': ["Sorry " + self.user_name + ", I don't understand what you just said. How can I help you with your student card?"],
                                               'last_node': {}},
-                               'ask_problem': {'options': ["What kind of problem do you have?",
+                               'ask_problem': {'options': ["Oh, what kind of problem do you have?",
                                                            "Oh, what happened?"],
                                                'recurrent': ["Sorry, I don't understand. What kind of problem do you have (lost it, doesn't work, permission issues...)?"],
                                                'last_node': {}},
                                'ask_check_in_reception': {'options': ["Oh, I'm sorry to hear that. Have you asked in the campus reception?",
                                                                       "Really? Oh... Have you asked in the campus reception?",
                                                                       "Oh, I'm sorry, but you'll be expelled from the university... \n\n...\n\nJust kidding! Have you asked in the campus reception?"],
-                                                          'recurrent': ["Sorry, I dont understand what you said. Did you check if they have found it in the campus reception?"],
+                                                          'recurrent': ["Sorry, I don't understand what you said. Did you check if they have found it in the campus reception?"],
                                                           'last_node': {}},
                                'check_in_reception': {'options': ["Then that's the first thing you have to do.",
                                                                   "You should go there first, to check if they found it."],
@@ -152,33 +149,33 @@ class Graph():
                                                        "Goodbye " + self.user_name + ". Have a nice day!"],
                                            'recurrent': [],
                                            'last_node': {}},
-                               'get_new_card': {'options': ["Oh, if it isn't working you should ask for a new one.",
+                               'get_new_card': {'options': ["Oh, then you should ask for a new one.",
                                                             "I see... Then you need a new one."],
-                                                'recurrent': ["Sorry, I couldn't get what you just said. How can I help you?"],
+                                                'recurrent': ["Sorry, I couldn't get what you just said. You should ask for a new card."],
                                                 'last_node': {}},
                                'check_permissions': {'options': ["Oh, if the permissions are wrong you should ask for an update.",
                                                                  "I see... Then you need new permissions."],
-                                                     'recurrent': ["Sorry, I couldn't get what you just said. How can I help you?"],
+                                                     'recurrent': ["Sorry, I couldn't get what you just said. You should ask for new permissions."],
                                                      'last_node': {}},
                                'meeting_pie': {'options': ["You need to ask for a meeting at PIE. If you want I can do it for you.",
                                                            "You need to go to the library and arrange a meeting at the PIE. However, as I'm a machine (ba dum tssssss) I can do it for you."],
-                                               'recurrent': ["Sorry, I couldn't get what you just said. How can I help you?"],
+                                               'recurrent': ["Sorry, I couldn't get what you just said. You need to ask for a meeting at PIE. Do you want me to arrenge a meeting at the PIE for you?"],
                                                'last_node': {}},
                                'explain_pie': {'options': ["PIE stands for Punt d'Informació de l'Estudiantat. Do you want me to arrange a meeting for you there?",
                                                            "Oh, it's the Punt d'Informació de l'Estudiantat. I can arrange a meeting for you if you want."],
-                                               'recurrent': ["Sorry, I couldn't get what you just said. How can I help you?"],
+                                               'recurrent': ["Sorry, I couldn't get what you just said. PIE stands for Punt d'Informació de l'Estudiantat. Do you want me to arrange a meeting for you there?"],
                                                'last_node': {}},
                                'ask_userid': {'options': ["Ok. Can you give me your username? The one that starts with U...",
                                                           "Perfect. I need you username, the one starting with U..."],
-                                              'recurrent': ["Sorry, I couldn't get what you just said. How can I help you?"],
-                                              'last_node': {'ask_availability': ["Sorry, can you type again your username? Something went wrong..."]}},
+                                              'recurrent': ["Sorry, I couldn't get what you just said. Can you give me your username? It should be something like U117652"],
+                                              'last_node': {'ask_availability': ["Sorry, can you type again your username? It should be something like U117652"]}},
                                'ask_availability': {'options': ["Ok " + self.user_id + ". Do you prefer the meeting to be in the morning or in the afternoon?",
                                                                 self.user_id + ", got it. Would you like the meeting to be in the morning or in the afternoon?"],
-                                                    'recurrent': ["Sorry, I couldn't get what you just said. How can I help you?"],
+                                                    'recurrent': ["Sorry, I couldn't get what you just said. Would you like the meeting to be in the morning or in the afternoon?"],
                                                     'last_node': {}},
                                'check_date': {'options': ["The next possible appointment could be " + self.proposed_date_str,
                                                           "If it is alright, I'll arrange you a meeting on " + self.proposed_date_str],
-                                              'recurrent': ["Sorry, I couldn't get what you just said. How can I help you?"],
+                                              'recurrent': ["Sorry, I couldn't get what you just said. The next possible appointment could be " + self.proposed_date_str],
                                               'last_node': {}}}
 
     def parse_user_name(self, answer):
@@ -320,7 +317,7 @@ class Graph():
         graph.add_edge('ask_availability', 'ask_availability', required_words=[])
 
         graph.add_edge('check_date', 'ask_availability', required_words=['no', 'change', 'wrong', 'impossible'])
-        graph.add_edge('check_date', 'goodbye', required_words=['thank', 'thanks', 'bye', 'goodbye', 'perfect', 'great', 'awesome'])
+        graph.add_edge('check_date', 'goodbye', required_words=['ok', 'thank', 'thanks', 'bye', 'goodbye', 'perfect', 'great', 'awesome'])
         graph.add_edge('check_date', 'check_date', required_words=[])
 
         self.graph = graph
@@ -329,7 +326,7 @@ class Graph():
         """ cleans the answer to be able to split it into words, by separating
         punctuation marks and deleting '.', ',' and ':'.
         """
-        answer.replace('!', ' !').replace('?', ' ?').replace(',', '').replace('.', '').replace(':', '')
+        answer = answer.replace('!', ' !').replace('?', ' ?').replace(',', '').replace('.', '').replace(':', '')
         return answer.lower().split(' ')
 
     def choose_next_node(self, answer):
