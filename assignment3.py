@@ -4,11 +4,19 @@ def print_chart():
     print '\n\n\n\n'
     for i, col in enumerate(chart):
         print '\n--------------------------------------------------------------------------------'
-        print 'col ', i
+        print 'chart[', i, ']'
         print '--------------------------------------------------------------------------------'
 
         for j, row in enumerate(chart[i]):
-            print row['key_rule'], ' --> ', row['rule'], '               [', row['input_pos'], ', ', row['global_dot_pos'], ']               ', row['who_added_it'], '\n'
+
+            rule = row['rule']
+            rule = rule.split(' ')
+            try:
+                rule[row['dot_pos']] = '. ' + rule[row['dot_pos']]
+            except:
+                rule.append('.')
+
+            print row['key_rule'], ' --> ', ' '.join(rule), '               [', row['input_pos'], ', ', row['global_dot_pos'], ']               ', row['who_added_it'], '\n'
             # print row['key_rule'], ' --> ', row['rule'], row['input_pos'], row['global_dot_pos'], row['dot_pos'], '               ', row['who_added_it'], '\n'
 
 
