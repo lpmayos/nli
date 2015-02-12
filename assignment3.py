@@ -3,12 +3,13 @@ def print_chart():
     """
     print '\n\n\n\n'
     for i, col in enumerate(chart):
-        print '\n----------------------------------------------------------------'
+        print '\n--------------------------------------------------------------------------------'
         print 'col ', i
-        print '----------------------------------------------------------------'
+        print '--------------------------------------------------------------------------------'
 
         for j, row in enumerate(chart[i]):
-            print row['key_rule'], ' --> ', row['rule'], row['input_pos'], row['global_dot_pos'], row['dot_pos'], '               ', row['who_added_it'], '\n'
+            print row['key_rule'], ' --> ', row['rule'], '               [', row['input_pos'], ', ', row['global_dot_pos'], ']               ', row['who_added_it'], '\n'
+            # print row['key_rule'], ' --> ', row['rule'], row['input_pos'], row['global_dot_pos'], row['dot_pos'], '               ', row['who_added_it'], '\n'
 
 
 def incomplete(state):
