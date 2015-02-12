@@ -1,3 +1,6 @@
+import ipdb
+
+
 def print_chart():
     """
     """
@@ -16,8 +19,8 @@ def print_chart():
             except:
                 rule.append('.')
 
-            print row['key_rule'], ' --> ', ' '.join(rule), '               [', row['input_pos'], ', ', row['global_dot_pos'], ']               ', row['who_added_it'], '\n'
-            # print row['key_rule'], ' --> ', row['rule'], row['input_pos'], row['global_dot_pos'], row['dot_pos'], '               ', row['who_added_it'], '\n'
+            print row['key_rule'], ' --> ', ' '.join(rule), '               [', row['begin'], ', ', row['end'], ']               ', row['who_added_it'], '\n'
+            # print row['key_rule'], ' --> ', row['rule'], row['begin'], row['end'], row['dot_pos'], '               ', row['who_added_it'], '\n'
 
 
 def incomplete(state):
@@ -46,8 +49,8 @@ def earley_parser(words):
     """
     chart[0].append({'key_rule': 'gamma',
                      'rule': 's',
-                     'input_pos': 0,
-                     'global_dot_pos': 0,
+                     'begin': 0,
+                     'end': 0,
                      'dot_pos': 0,
                      'who_added_it': 'dummy start state'})
 
@@ -65,15 +68,18 @@ def earley_parser(words):
 def predictor(state):
     """
     """
+    # ipdb.set_trace()
     next_category = next_cat(state)
-    for expansion in grammar[next_category]:
-        new_state = {'key_rule': next_category,
-                     'rule': expansion,
-                     'input_pos': state['input_pos'],
-                     'global_dot_pos': state['global_dot_pos'],
-                     'dot_pos': state['dot_pos'],
-                     'who_added_it': 'predictor'}
-        enqueue(new_state, state['input_pos'])
+    if next_category in grammar:
+        for expansion in grammar[next_category]:
+            new_state = {'key_rule': next_category,
+                         'rule': expansion,
+                         'begin': state['end'],
+                         'end': state['end'],
+                         'dot_pos': state['end'] - state['begin'],  # state['dot_pos'],
+                         'who_added_it': 'predictor'}
+            # enqueue(new_state, state['begin'])
+            enqueue(new_state, state['end'])
     return
 
 
@@ -84,28 +90,26 @@ def scanner(state, word):
     if state['rule'] in grammar and word in grammar[state['rule']]:
         new_state = {'key_rule': state['rule'],
                      'rule': word,
-                     'input_pos': state['input_pos'],
-                     'global_dot_pos': state['global_dot_pos'] + 1,
-                     'dot_pos': state['dot_pos'] + 1,
+                     'begin': state['end'],
+                     'end': state['end'] + 1,
+                     'dot_pos': state['end'] - state['begin'],  # state['dot_pos'] + 1,
                      'who_added_it': 'scanner'}
-        enqueue(new_state, state['input_pos'] + 1)
+        enqueue(new_state, state['end'] + 1)
     return
 
 
 def completer(current_state):
     """
     """
-    for state in chart[current_state['input_pos']]:
-        # if len(state['rule'].split()) > state['dot_pos']:
+    for state in chart[current_state['begin']]:
         if state['rule'].split()[state['dot_pos']] == current_state['key_rule']:
             new_state = {'key_rule': state['key_rule'],
                          'rule': state['rule'],
-                         'input_pos': state['input_pos'],
-                         'global_dot_pos': state['global_dot_pos'] + 1,
-                         'dot_pos': state['dot_pos'] + 1,
+                         'begin': state['begin'],
+                         'end': current_state['end'],
+                         'dot_pos': state['end'] - state['begin'],  # state['dot_pos'] + 1,
                          'who_added_it': 'completer'}
-            enqueue(new_state, state['input_pos'] + 1)
-            # enqueue(new_state, state['input_pos'])
+            enqueue(new_state, current_state['end'])
     return
 
 
@@ -139,7 +143,7 @@ grammar = {'s': ['np vp', 'aux np vp', 'vp'],
            'proper_noun': ['houston', 'twa'],
            'nominal': ['nominal pp']}
 
-chart = [[] for x in range(len(phrase.split()))]
+chart = [[] for x in range(len(phrase.split()) + 1)]
 words = phrase.split()
 earley_parser(words)
 print_chart()
