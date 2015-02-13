@@ -42,8 +42,7 @@ def enqueue(state, chart_pos):
             chart[chart_pos].append(state)
             print_chart()
     except:
-        ipdb.set_trace()
-        return
+        return  # todo: should this be here?
     return
 
 
@@ -61,46 +60,16 @@ def earley_parser(words):
     for i in range(len(chart)):
         if i < len(words):
             word = words[i]
-        print i, ' ******************************************'
-        for k, state in enumerate(chart[i]):
-            print k, '############################################'
 
+        for k, state in enumerate(chart[i]):
             if not state['complete'] and next_cat(state) not in final_words:
                 predictor(state)
             elif not state['complete'] and next_cat(state) in final_words:
                 scanner(state, word)
             else:
                 completer(state)
+
     return chart
-
-
-# def earley_parser(words):
-#     """
-#     """
-#     chart[0].append({'key_rule': 'gamma',
-#                      'rule': 's',
-#                      'begin': 0,
-#                      'end': 0,
-#                      'dot_pos': 0,
-#                      'who_added_it': 'dummy start state',
-#                      'complete': False})
-
-#     ipdb.set_trace()
-#     for i, word in enumerate(words):
-#         print i, ' ******************************************'
-#         for k, state in enumerate(chart[i]):
-#             print k, '############################################'
-
-#             if i == 3:
-#                 ipdb.set_trace()
-
-#             if not state['complete'] and next_cat(state) not in final_words:
-#                 predictor(state)
-#             elif not state['complete'] and next_cat(state) in final_words:
-#                 scanner(state, word)
-#             else:
-#                 completer(state)
-#     return chart
 
 
 def predictor(state):
@@ -121,27 +90,9 @@ def predictor(state):
     return
 
 
-# def predictor(state):
-#     """
-#     """
-#     next_category = next_cat(state)
-#     if next_category in grammar:
-#         for expansion in grammar[next_category]:
-#             new_state = {'key_rule': next_category,
-#                          'rule': expansion,
-#                          'begin': state['end'],
-#                          'end': state['end'],
-#                          'dot_pos': 0,
-#                          'who_added_it': 'predictor',
-#                          'complete': False}
-#             enqueue(new_state, state['end'])
-#     return
-
-
 def scanner(state, word):
     """
     """
-    # check that we are parsing a phrase that we know how to parse
     rule = state['rule'].split()[state['dot_pos']]
     if rule in grammar and word in grammar[rule]:
         new_state = {'key_rule': rule,
