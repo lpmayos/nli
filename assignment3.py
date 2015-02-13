@@ -20,19 +20,18 @@ def print_chart():
                 rule.append('.')
 
             print row['key_rule'], ' --> ', ' '.join(rule), '               [', row['begin'], ', ', row['end'], ']               ', row['who_added_it'], '\n'
-            # print row['key_rule'], ' --> ', row['rule'], row['begin'], row['end'], row['dot_pos'], '               ', row['who_added_it'], '\n'
-
-
-def incomplete(state):
-    """
-    """
-    return state['dot_pos'] < len(state['rule'].split())
 
 
 def next_cat(state):
     """
     """
     return state['rule'].split()[state['dot_pos']]
+
+
+def next_cats(state):
+    """
+    """
+    return state['rule'].split()[state['dot_pos']::]
 
 
 def enqueue(state, chart_pos):
@@ -52,13 +51,14 @@ def earley_parser(words):
                      'begin': 0,
                      'end': 0,
                      'dot_pos': 0,
-                     'who_added_it': 'dummy start state'})
+                     'who_added_it': 'dummy start state',
+                     'complete': False})
 
     for i, word in enumerate(words):
-        for state in chart[i]:
-            if incomplete(state) and next_cat(state) not in final_words:
+        for k, state in enumerate(chart[i]):
+            if not state['complete'] and next_cat(state) not in final_words:
                 predictor(state)
-            elif incomplete(state) and next_cat(state) in final_words:
+            elif not state['complete'] and next_cat(state) in final_words:
                 scanner(state, word)
             else:
                 completer(state)
@@ -68,19 +68,36 @@ def earley_parser(words):
 def predictor(state):
     """
     """
-    # ipdb.set_trace()
-    next_category = next_cat(state)
-    if next_category in grammar:
-        for expansion in grammar[next_category]:
-            new_state = {'key_rule': next_category,
-                         'rule': expansion,
-                         'begin': state['end'],
-                         'end': state['end'],
-                         'dot_pos': 0,  # state['dot_pos'],
-                         'who_added_it': 'predictor'}
-            # enqueue(new_state, state['begin'])
-            enqueue(new_state, state['end'])
+    next_categories = next_cats(state)
+    for next_category in next_categories:
+        if next_category in grammar:
+            for expansion in grammar[next_category]:
+                new_state = {'key_rule': next_category,
+                             'rule': expansion,
+                             'begin': state['end'],
+                             'end': state['end'],
+                             'dot_pos': 0,
+                             'who_added_it': 'predictor',
+                             'complete': False}
+                enqueue(new_state, state['end'])
     return
+
+
+# def predictor(state):
+#     """
+#     """
+#     next_category = next_cat(state)
+#     if next_category in grammar:
+#         for expansion in grammar[next_category]:
+#             new_state = {'key_rule': next_category,
+#                          'rule': expansion,
+#                          'begin': state['end'],
+#                          'end': state['end'],
+#                          'dot_pos': 0,
+#                          'who_added_it': 'predictor',
+#                          'complete': False}
+#             enqueue(new_state, state['end'])
+#     return
 
 
 def scanner(state, word):
@@ -93,7 +110,8 @@ def scanner(state, word):
                      'begin': state['begin'],
                      'end': state['end'] + 1,
                      'dot_pos': state['dot_pos'] + 1,
-                     'who_added_it': 'scanner'}
+                     'who_added_it': 'scanner',
+                     'complete': state['dot_pos'] + 1 == len(word.split())}
         enqueue(new_state, state['end'] + 1)
     return
 
@@ -102,14 +120,18 @@ def completer(current_state):
     """
     """
     for state in chart[current_state['begin']]:
-        if state['rule'].split()[state['dot_pos']] == current_state['key_rule']:
-            new_state = {'key_rule': state['key_rule'],
-                         'rule': state['rule'],
-                         'begin': state['begin'],
-                         'end': current_state['end'],
-                         'dot_pos': state['dot_pos'] + 1,
-                         'who_added_it': 'completer'}
-            enqueue(new_state, current_state['end'])
+        try:
+            if state['rule'].split()[state['dot_pos']] == current_state['key_rule']:
+                new_state = {'key_rule': state['key_rule'],
+                             'rule': state['rule'],
+                             'begin': state['begin'],
+                             'end': current_state['end'],
+                             'dot_pos': state['dot_pos'] + 1,
+                             'who_added_it': 'completer',
+                             'complete': state['dot_pos'] + 1 == len(state['rule'].split())}
+                enqueue(new_state, current_state['end'])
+        except:
+            continue
     return
 
 
