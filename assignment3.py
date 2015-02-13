@@ -55,7 +55,11 @@ def earley_parser(words):
                      'complete': False})
 
     for i, word in enumerate(words):
+        print i, ' ******************************************'
         for k, state in enumerate(chart[i]):
+            print k, '############################################'
+            if i == 1 and k == 4:
+                ipdb.set_trace()
             if not state['complete'] and next_cat(state) not in final_words:
                 predictor(state)
             elif not state['complete'] and next_cat(state) in final_words:
@@ -104,8 +108,9 @@ def scanner(state, word):
     """
     """
     # check that we are parsing a phrase that we know how to parse
-    if state['rule'] in grammar and word in grammar[state['rule']]:
-        new_state = {'key_rule': state['rule'],
+    rule = state['rule'].split()[state['dot_pos']]
+    if rule in grammar and word in grammar[rule]:
+        new_state = {'key_rule': rule,
                      'rule': word,
                      'begin': state['begin'],
                      'end': state['end'] + 1,
@@ -120,18 +125,15 @@ def completer(current_state):
     """
     """
     for state in chart[current_state['begin']]:
-        try:
-            if state['rule'].split()[state['dot_pos']] == current_state['key_rule']:
-                new_state = {'key_rule': state['key_rule'],
-                             'rule': state['rule'],
-                             'begin': state['begin'],
-                             'end': current_state['end'],
-                             'dot_pos': state['dot_pos'] + 1,
-                             'who_added_it': 'completer',
-                             'complete': state['dot_pos'] + 1 == len(state['rule'].split())}
-                enqueue(new_state, current_state['end'])
-        except:
-            continue
+        if not state['complete'] and state['rule'].split()[state['dot_pos']] == current_state['key_rule']:
+            new_state = {'key_rule': state['key_rule'],
+                         'rule': state['rule'],
+                         'begin': state['begin'],
+                         'end': current_state['end'],
+                         'dot_pos': state['dot_pos'] + 1,
+                         'who_added_it': 'completer',
+                         'complete': state['dot_pos'] + 1 == len(state['rule'].split())}
+            enqueue(new_state, current_state['end'])
     return
 
 
@@ -153,7 +155,7 @@ phrase = "book that flight"
 final_words = ['verb', 'det', 'noun', 'proper_noun', 'prep', 'aux']
 
 # pag 381 pdf
-grammar = {'s': ['np vp', 'aux np vp', 'vp'],
+grammar = {'s': ['np vp', 'aux np vp', 'vp'],  # 's': ['np vp', 'aux np vp', 'vp'],
            'np': ['det nominal', 'proper_noun'],
            'nominal': ['noun', 'noun nominal'],
            'vp': ['verb', 'verb np'],
@@ -162,8 +164,7 @@ grammar = {'s': ['np vp', 'aux np vp', 'vp'],
            'verb': ['book', 'include', 'prefer'],
            'aux': ['does'],
            'prep': ['from', 'to', 'on'],
-           'proper_noun': ['houston', 'twa'],
-           'nominal': ['nominal pp']}
+           'proper_noun': ['houston', 'twa']}
 
 chart = [[] for x in range(len(phrase.split()) + 1)]
 words = phrase.split()
