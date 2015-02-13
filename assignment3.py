@@ -40,12 +40,9 @@ def next_cats(state):
 def enqueue(state, chart_pos):
     """
     """
-    try:
-        if state not in chart[chart_pos]:
-            chart[chart_pos].append(state)
-            print_chart()
-    except:
-        return  # todo: should this be here?
+    if chart_pos < len(chart) and state not in chart[chart_pos]:
+        chart[chart_pos].append(state)
+        print_chart()
     return
 
 
