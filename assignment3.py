@@ -76,7 +76,7 @@ def predictor(state):
                          'rule': expansion,
                          'begin': state['end'],
                          'end': state['end'],
-                         'dot_pos': state['end'] - state['begin'],  # state['dot_pos'],
+                         'dot_pos': 0,  # state['dot_pos'],
                          'who_added_it': 'predictor'}
             # enqueue(new_state, state['begin'])
             enqueue(new_state, state['end'])
@@ -90,9 +90,9 @@ def scanner(state, word):
     if state['rule'] in grammar and word in grammar[state['rule']]:
         new_state = {'key_rule': state['rule'],
                      'rule': word,
-                     'begin': state['end'],
+                     'begin': state['begin'],
                      'end': state['end'] + 1,
-                     'dot_pos': state['end'] - state['begin'],  # state['dot_pos'] + 1,
+                     'dot_pos': state['dot_pos'] + 1,
                      'who_added_it': 'scanner'}
         enqueue(new_state, state['end'] + 1)
     return
@@ -107,7 +107,7 @@ def completer(current_state):
                          'rule': state['rule'],
                          'begin': state['begin'],
                          'end': current_state['end'],
-                         'dot_pos': state['end'] - state['begin'],  # state['dot_pos'] + 1,
+                         'dot_pos': state['dot_pos'] + 1,
                          'who_added_it': 'completer'}
             enqueue(new_state, current_state['end'])
     return
