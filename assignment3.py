@@ -37,9 +37,13 @@ def next_cats(state):
 def enqueue(state, chart_pos):
     """
     """
-    if state not in chart[chart_pos]:
-        chart[chart_pos].append(state)
-        print_chart()
+    try:
+        if state not in chart[chart_pos]:
+            chart[chart_pos].append(state)
+            print_chart()
+    except:
+        ipdb.set_trace()
+        return
     return
 
 
@@ -54,12 +58,13 @@ def earley_parser(words):
                      'who_added_it': 'dummy start state',
                      'complete': False})
 
-    for i, word in enumerate(words):
+    for i in range(len(chart)):
+        if i < len(words):
+            word = words[i]
         print i, ' ******************************************'
         for k, state in enumerate(chart[i]):
             print k, '############################################'
-            if i == 1 and k == 4:
-                ipdb.set_trace()
+
             if not state['complete'] and next_cat(state) not in final_words:
                 predictor(state)
             elif not state['complete'] and next_cat(state) in final_words:
@@ -67,6 +72,35 @@ def earley_parser(words):
             else:
                 completer(state)
     return chart
+
+
+# def earley_parser(words):
+#     """
+#     """
+#     chart[0].append({'key_rule': 'gamma',
+#                      'rule': 's',
+#                      'begin': 0,
+#                      'end': 0,
+#                      'dot_pos': 0,
+#                      'who_added_it': 'dummy start state',
+#                      'complete': False})
+
+#     ipdb.set_trace()
+#     for i, word in enumerate(words):
+#         print i, ' ******************************************'
+#         for k, state in enumerate(chart[i]):
+#             print k, '############################################'
+
+#             if i == 3:
+#                 ipdb.set_trace()
+
+#             if not state['complete'] and next_cat(state) not in final_words:
+#                 predictor(state)
+#             elif not state['complete'] and next_cat(state) in final_words:
+#                 scanner(state, word)
+#             else:
+#                 completer(state)
+#     return chart
 
 
 def predictor(state):
