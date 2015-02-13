@@ -19,7 +19,10 @@ def print_chart():
             except:
                 rule.append('.')
 
-            print row['key_rule'], ' --> ', ' '.join(rule), '               [', row['begin'], ', ', row['end'], ']               ', row['who_added_it'], '\n'
+            if 'pointer_to_parent' in row:
+                print row['key_rule'], ' --> ', ' '.join(rule), '               [', row['begin'], ', ', row['end'], ']               ', row['who_added_it'], ', ', row['pointer_to_parent'], '\n'
+            else:
+                print row['key_rule'], ' --> ', ' '.join(rule), '               [', row['begin'], ', ', row['end'], ']               ', row['who_added_it'], '\n'
 
 
 def next_cat(state):
@@ -67,7 +70,7 @@ def earley_parser(words):
             elif not state['complete'] and next_cat(state) in final_words:
                 scanner(state, word)
             else:
-                completer(state)
+                completer(state, i, k)
 
     return chart
 
@@ -101,15 +104,15 @@ def scanner(state, word):
                      'end': state['end'] + 1,
                      'dot_pos': state['dot_pos'] + 1,
                      'who_added_it': 'scanner',
-                     'complete': state['dot_pos'] + 1 == len(word.split())}
+                     'complete': state['dot_pos'] + 1 >= len(word.split())}
         enqueue(new_state, state['end'] + 1)
     return
 
 
-def completer(current_state):
+def completer(current_state, column, row):
     """
     """
-    for state in chart[current_state['begin']]:
+    for state in chart[current_state['begin']] + chart[current_state['end'] - 1]:
         if not state['complete'] and state['rule'].split()[state['dot_pos']] == current_state['key_rule']:
             new_state = {'key_rule': state['key_rule'],
                          'rule': state['rule'],
@@ -117,9 +120,44 @@ def completer(current_state):
                          'end': current_state['end'],
                          'dot_pos': state['dot_pos'] + 1,
                          'who_added_it': 'completer',
-                         'complete': state['dot_pos'] + 1 == len(state['rule'].split())}
+                         'complete': state['dot_pos'] + 1 == len(state['rule'].split()),
+                         'pointer_to_parent': [[column, row]]}
             enqueue(new_state, current_state['end'])
     return
+
+
+# ------------------------------------------------------------------------------
+# parsing_trees = []
+
+
+# def _extract_paring_trees_helper(states_list, position):
+#     """
+#     """
+#     for state in states_list:
+
+#         try:
+#             parsing_trees[position].append(state)
+#         except:
+
+
+#         if state['pointer_to_parent']:
+#             _extract_paring_trees_helper(state['pointer_to_parent'], position + 1)
+#     return
+
+
+# def extract_parsing_trees():
+#     """
+#     """
+#     for i, state in enumerate(chart[len(words)]):
+#         if state['key_rule'] == 'gamma' and state['end'] == len(words):
+#             final_state = state
+
+#     _extract_paring_trees_helper([final_state], 0)
+
+#     # ipdb.set_trace()
+
+#     return
+# ------------------------------------------------------------------------------
 
 
 # phrase = "you need new permissions"
@@ -128,7 +166,7 @@ def completer(current_state):
 
 # grammar = {'s': ['np vp'],
 #            'np': ['pronoun', 'adj n'],
-#            'vp': ['v'],
+#            'vp': ['v np'],
 #            'pronoun': ['you'],
 #            'v': ['need'],
 #            'adj': ['new'],
@@ -140,7 +178,7 @@ phrase = "book that flight"
 final_words = ['verb', 'det', 'noun', 'proper_noun', 'prep', 'aux']
 
 # pag 381 pdf
-grammar = {'s': ['np vp', 'aux np vp', 'vp'],  # 's': ['np vp', 'aux np vp', 'vp'],
+grammar = {'s': ['np vp', 'aux np vp', 'vp'],
            'np': ['det nominal', 'proper_noun'],
            'nominal': ['noun', 'noun nominal'],
            'vp': ['verb', 'verb np'],
@@ -155,3 +193,4 @@ chart = [[] for x in range(len(phrase.split()) + 1)]
 words = phrase.split()
 earley_parser(words)
 print_chart()
+# extract_parsing_trees()
