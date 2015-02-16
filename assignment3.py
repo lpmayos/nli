@@ -131,28 +131,20 @@ class EarleyParser():
         for chart_pos in self.chart[int(current_state['begin']):int(current_state['end']) + 1]:
             for state in chart_pos:
                 if not state['complete'] and state['rule'].split()[state['dot_pos']] == current_state['key_rule']:
+                    new_state = {'key_rule': state['key_rule'],
+                                 'rule': state['rule'],
+                                 'begin': state['begin'],
+                                 'end': current_state['end'],
+                                 'dot_pos': state['dot_pos'] + 1,
+                                 'who_added_it': 'completer',
+                                 'complete': state['dot_pos'] + 1 == len(state['rule'].split()),
+                                 'pointer_to_parent': [[column, row]]}
+
                     if 'pointer_to_parent' in state:
                         col1 = state['pointer_to_parent'][0][0]
                         row1 = state['pointer_to_parent'][0][1]
-                        new_state = {'key_rule': state['key_rule'],
-                                     'rule': state['rule'],
-                                     'begin': state['begin'],
-                                     'end': current_state['end'],
-                                     'dot_pos': state['dot_pos'] + 1,
-                                     'who_added_it': 'completer',
-                                     'complete': state['dot_pos'] + 1 == len(state['rule'].split()),
-                                     'pointer_to_parent': [[column, row]]}
                         new_state['pointer_to_parent'].append([col1, row1])
 
-                    else:
-                        new_state = {'key_rule': state['key_rule'],
-                                     'rule': state['rule'],
-                                     'begin': state['begin'],
-                                     'end': current_state['end'],
-                                     'dot_pos': state['dot_pos'] + 1,
-                                     'who_added_it': 'completer',
-                                     'complete': state['dot_pos'] + 1 == len(state['rule'].split()),
-                                     'pointer_to_parent': [[column, row]]}
                     self.enqueue(new_state, current_state['end'])
                 if state == current_state:
                     break
@@ -220,39 +212,53 @@ def initial_data(num_phrase):
                'n': ['permissions', 'meeting', 'appointment', 'tomorrow']}
     return phrases[num_phrase].split(), final_words, grammar
 
-# testing data from http://www.inf.ed.ac.uk/teaching/courses/inf2a/slides/2007_inf2a_L18_slides.pdf
-# phrase = "fish swim in the soup"
-# final_words = ['verb', 'det', 'noun', 'relpro', 'prep']
-# grammar = {'s': ['np vp'],  # 's': ['np vp', 'aux np vp', 'vp'],
-#            'np': ['det nominal', 'nominal'],
-#            'nominal': ['noun srel', 'noun'],
-#            'vp': ['verb pp', 'verb np', 'verb'],
-#            'pp': ['prep np'],
-#            'srel': ['relpro vp'],
-#            'det': ['the', 'a'],
-#            'noun': ['fish', 'frog', 'soup'],
-#            'verb': ['saw', 'eat', 'swim'],
-#            'relpro': ['that'],
-#            'prep': ['in', 'for']}
+
+def testing_data_a():
+    """
+    """
+    # testing data from http://www.inf.ed.ac.uk/teaching/courses/inf2a/slides/2007_inf2a_L18_slides.pdf
+    phrase = "fish swim in the soup"
+    final_words = ['verb', 'det', 'noun', 'relpro', 'prep']
+    grammar = {'s': ['np vp'],
+               'np': ['det nominal', 'nominal'],
+               'nominal': ['noun srel', 'noun'],
+               'vp': ['verb pp', 'verb np', 'verb'],
+               'pp': ['prep np'],
+               'srel': ['relpro vp'],
+               'det': ['the', 'a'],
+               'noun': ['fish', 'frog', 'soup'],
+               'verb': ['saw', 'eat', 'swim'],
+               'relpro': ['that'],
+               'prep': ['in', 'for']}
+
+    return phrase.split(), final_words, grammar
 
 
-# testing data from the book (page 381 of the pdf)
-# phrase = "book that flight"
-# final_words = ['verb', 'det', 'noun', 'proper_noun', 'prep', 'aux']
-# grammar = {'s': ['np vp', 'aux np vp', 'vp'],
-#            'np': ['det nominal', 'proper_noun'],
-#            'nominal': ['noun', 'noun nominal'],
-#            'vp': ['verb', 'verb np'],
-#            'det': ['that', 'this', 'a'],
-#            'noun': ['book', 'flight', 'meal', 'money'],
-#            'verb': ['book', 'include', 'prefer'],
-#            'aux': ['does'],
-#            'prep': ['from', 'to', 'on'],
-#            'proper_noun': ['houston', 'twa']}
+def testing_data_b():
+    """
+    """
+    # testing data from the book (page 381 of the pdf)
+    phrase = "book that flight"
+    final_words = ['verb', 'det', 'noun', 'proper_noun', 'prep', 'aux']
+    grammar = {'s': ['np vp', 'aux np vp', 'vp'],
+               'np': ['det nominal', 'proper_noun'],
+               'nominal': ['noun', 'noun nominal'],
+               'vp': ['verb', 'verb np'],
+               'det': ['that', 'this', 'a'],
+               'noun': ['book', 'flight', 'meal', 'money'],
+               'verb': ['book', 'include', 'prefer'],
+               'aux': ['does'],
+               'prep': ['from', 'to', 'on'],
+               'proper_noun': ['houston', 'twa']}
+
+    return phrase.split(), final_words, grammar
 
 
 def main():
-    words, final_words, grammar = initial_data(1)
+    phrase_num = int(sys.argv[1])
+    words, final_words, grammar = initial_data(phrase_num)
+    # words, final_words, grammar = testing_data_a()
+    # words, final_words, grammar = testing_data_b()
     earley_parser = EarleyParser(words, final_words, grammar)
     earley_parser.earley_parser()
     earley_parser.print_chart()
