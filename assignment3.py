@@ -1,20 +1,39 @@
+# -*- coding: utf-8 -*-
+
+"""
+Natural Language Interaction, MIIS, UPF
+January 2015
+Authors: Laura Pérez & Víctor Casamayor
+Description: Earley Parser implementation
+
+How to execute (expects a parameter between 0 and 2):
+    $ python assignment3.py 0
+
+References:
+    - Speech and Language Processing, Daniel Jurafsky and James H. Martin
+    - http://en.wikipedia.org/wiki/Earley_parser
+    - http://www.inf.ed.ac.uk/teaching/courses/inf2a/slides/2007_inf2a_L18_slides.pdf
+"""
+
 import sys
 
 
 class EarleyParser():
-    """
+    """ main class of the Earley Parser algorithm
     """
 
-    def __init__(self, words, final_words, grammar):
+    def __init__(self, phrase, final_words, grammar):
+        """ expects the phrase to parse, the list of elements that are final
+        words and a dictionary with the grammar
         """
-        """
-        self.words = words
+        self.words = phrase.split()
         self.final_words = final_words
         self.grammar = grammar
-        self.chart = [[] for x in range(len(words) + 1)]
+        self.chart = [[] for x in range(len(self.words) + 1)]
 
     def print_chart(self):
-        """
+        """ prints the chart matrix to emulate the table on page 382 of the
+        referenced book
         """
         print '\n\n\n\n'
 
@@ -40,17 +59,18 @@ class EarleyParser():
                 aux += 1
 
     def next_cat(self, state):
-        """
+        """ given a state, return which is the next category expected
         """
         return state['rule'].split()[state['dot_pos']]
 
     def next_cats(self, state):
-        """
+        """ given a state, return a list with all the next categories expected
         """
         return state['rule'].split()[state['dot_pos']::]
 
     def state_in_chart_pos(self, new_state, chart_pos):
-        """
+        """ returns True if new_state is present in chart[chart_pos], without
+        taking into account the field 'pointer_to_parent'
         """
         for state in self.chart[chart_pos]:
             if state['key_rule'] == new_state['key_rule'] and state['rule'] == new_state['rule'] and state['begin'] == new_state['begin'] and state['end'] == new_state['end'] and state['dot_pos'] == new_state['dot_pos'] and state['who_added_it'] == new_state['who_added_it'] and state['complete'] == new_state['complete']:
@@ -58,7 +78,7 @@ class EarleyParser():
         return False
 
     def enqueue(self, state, chart_pos):
-        """
+        """ adds the state to chart[chart_pos] if it is not already present
         """
         try:
             if not self.state_in_chart_pos(state, chart_pos):
@@ -68,7 +88,8 @@ class EarleyParser():
         return
 
     def earley_parser(self):
-        """
+        """ main function of the Earley Parser; for each state of the chart
+        executes one of the three functions: predictor, scanner or completer
         """
         self.chart[0].append({'key_rule': 'gamma',
                               'rule': 's',
@@ -93,7 +114,8 @@ class EarleyParser():
         return self.chart
 
     def predictor(self, state):
-        """
+        """ adds to the current position a new state for each alternative
+        expansion of that non-terminal provided by the grammar
         """
         next_categories = self.next_cats(state)
         for next_category in next_categories:
@@ -110,7 +132,8 @@ class EarleyParser():
         return
 
     def scanner(self, state, word):
-        """
+        """ adds to the next position a state from teh input state with the dot
+        advanced over the predicted input category
         """
         rule = state['rule'].split()[state['dot_pos']]
         if rule in self.grammar and word in self.grammar[rule]:
@@ -125,7 +148,8 @@ class EarleyParser():
         return
 
     def completer(self, current_state, column, row):
-        """
+        """ finds and advances all previously created states that where
+        expecting this grammatical category at this position in the input
         """
 
         for chart_pos in self.chart[int(current_state['begin']):int(current_state['end']) + 1]:
@@ -151,7 +175,7 @@ class EarleyParser():
         return
 
     def extract_parsing_trees(self):
-        """
+        """ extracts the parse from the chart
         """
         for i, state in enumerate(self.chart[len(self.words)]):
             if state['key_rule'] == 'gamma' and state['end'] == len(self.words):
@@ -190,7 +214,8 @@ class EarleyParser():
 
 
 def initial_data(num_phrase):
-    """
+    """ phrases, final words and grammar corresponding to the three selected
+    phrases from assignment 2
     """
 
     phrases = ["you need new permissions",
@@ -210,13 +235,13 @@ def initial_data(num_phrase):
                'adj': ['new', 'next', 'possible'],
                'md': ['can', 'could'],
                'n': ['permissions', 'meeting', 'appointment', 'tomorrow']}
-    return phrases[num_phrase].split(), final_words, grammar
+    return phrases[num_phrase], final_words, grammar
 
 
 def testing_data_a():
+    """ phrase, final words and grammar used while testing the algorithm; it was
+    extracted from http://www.inf.ed.ac.uk/teaching/courses/inf2a/slides/2007_inf2a_L18_slides.pdf
     """
-    """
-    # testing data from http://www.inf.ed.ac.uk/teaching/courses/inf2a/slides/2007_inf2a_L18_slides.pdf
     phrase = "fish swim in the soup"
     final_words = ['verb', 'det', 'noun', 'relpro', 'prep']
     grammar = {'s': ['np vp'],
@@ -231,13 +256,13 @@ def testing_data_a():
                'relpro': ['that'],
                'prep': ['in', 'for']}
 
-    return phrase.split(), final_words, grammar
+    return phrase, final_words, grammar
 
 
 def testing_data_b():
+    """ phrase, final words and grammar used while testing the algorithm; it was
+    extracted from the referenced book, page 356
     """
-    """
-    # testing data from the book (page 381 of the pdf)
     phrase = "book that flight"
     final_words = ['verb', 'det', 'noun', 'proper_noun', 'prep', 'aux']
     grammar = {'s': ['np vp', 'aux np vp', 'vp'],
@@ -251,15 +276,15 @@ def testing_data_b():
                'prep': ['from', 'to', 'on'],
                'proper_noun': ['houston', 'twa']}
 
-    return phrase.split(), final_words, grammar
+    return phrase, final_words, grammar
 
 
 def main():
     phrase_num = int(sys.argv[1])
-    words, final_words, grammar = initial_data(phrase_num)
-    # words, final_words, grammar = testing_data_a()
-    # words, final_words, grammar = testing_data_b()
-    earley_parser = EarleyParser(words, final_words, grammar)
+    phrase, final_words, grammar = initial_data(phrase_num)
+    # phrase, final_words, grammar = testing_data_a()
+    # phrase, final_words, grammar = testing_data_b()
+    earley_parser = EarleyParser(phrase, final_words, grammar)
     earley_parser.earley_parser()
     earley_parser.print_chart()
     earley_parser.extract_parsing_trees()
