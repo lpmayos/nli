@@ -281,7 +281,7 @@ def testing_data_b():
 
 def main():
     phrase_num = int(sys.argv[1])
-    phrase, final_words, grammar = initial_data(phrase_num)
+    phrase, final_words, grammar = initial_data(phrase_num - 1)
     # phrase, final_words, grammar = testing_data_a()
     # phrase, final_words, grammar = testing_data_b()
     earley_parser = EarleyParser(phrase, final_words, grammar)
